@@ -67,7 +67,7 @@ public class BookmakingApplicationTests {
 
         mockMvc.perform(post("/add").contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsBytes(bet)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(4)))
@@ -90,7 +90,7 @@ public class BookmakingApplicationTests {
 
         mockMvc.perform(post("/addAll").contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsBytes(bets)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(5)))
