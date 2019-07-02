@@ -2,6 +2,7 @@ package com.alansystems.bookmaking;
 
 import com.alansystems.bookmaking.model.Bet;
 import com.alansystems.bookmaking.model.Match;
+import com.alansystems.bookmaking.service.BetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +29,15 @@ public class BookmakingApplicationTests {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private BetService service;
+
     private ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void shouldReturnAllBets() throws Exception {
+        prepareData();
+
         mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].type", is("BET")))
@@ -55,6 +61,8 @@ public class BookmakingApplicationTests {
 
     @Test
     public void shouldAddOneBet() throws Exception {
+        prepareData();
+
         Bet bet = new Bet("BET", new Match("FC Albin - FC Barcelona", "X", 5.00, 2.12));
 
         mockMvc.perform(post("/add").contentType(MediaType.APPLICATION_JSON)
@@ -85,35 +93,50 @@ public class BookmakingApplicationTests {
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$", hasSize(8)))
+                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$[0].type", is("BET")))
+                .andExpect(jsonPath("$[0].bet.fixture", is("FC A - FC B")))
+                .andExpect(jsonPath("$[0].bet.outcome", is("1")))
+                .andExpect(jsonPath("$[0].bet.stake", is(7.00)))
+                .andExpect(jsonPath("$[0].bet.odds", is(22.22)))
+
+                .andExpect(jsonPath("$[1].type", is("BET")))
+                .andExpect(jsonPath("$[1].bet.fixture", is("FC C - FC D")))
+                .andExpect(jsonPath("$[1].bet.outcome", is("X")))
+                .andExpect(jsonPath("$[1].bet.stake", is(46.80)))
+                .andExpect(jsonPath("$[1].bet.odds", is(3.12)))
+
+                .andExpect(jsonPath("$[2].type", is("BET")))
+                .andExpect(jsonPath("$[2].bet.fixture", is("FC E - FC F")))
+                .andExpect(jsonPath("$[2].bet.outcome", is("2")))
+                .andExpect(jsonPath("$[2].bet.stake", is(2.22)))
+                .andExpect(jsonPath("$[2].bet.odds", is(12.26)))
+
                 .andExpect(jsonPath("$[3].type", is("BET")))
-                .andExpect(jsonPath("$[3].bet.fixture", is("FC A - FC B")))
-                .andExpect(jsonPath("$[3].bet.outcome", is("1")))
-                .andExpect(jsonPath("$[3].bet.stake", is(7.00)))
-                .andExpect(jsonPath("$[3].bet.odds", is(22.22)))
+                .andExpect(jsonPath("$[3].bet.fixture", is("FC G - FC H")))
+                .andExpect(jsonPath("$[3].bet.outcome", is("2")))
+                .andExpect(jsonPath("$[3].bet.stake", is(13.20)))
+                .andExpect(jsonPath("$[3].bet.odds", is(6.66)))
 
                 .andExpect(jsonPath("$[4].type", is("BET")))
-                .andExpect(jsonPath("$[4].bet.fixture", is("FC C - FC D")))
-                .andExpect(jsonPath("$[4].bet.outcome", is("X")))
-                .andExpect(jsonPath("$[4].bet.stake", is(46.80)))
-                .andExpect(jsonPath("$[4].bet.odds", is(3.12)))
+                .andExpect(jsonPath("$[4].bet.fixture", is("FC I - FC J")))
+                .andExpect(jsonPath("$[4].bet.outcome", is("1")))
+                .andExpect(jsonPath("$[4].bet.stake", is(25.42)))
+                .andExpect(jsonPath("$[4].bet.odds", is(6.88)));
+    }
 
-                .andExpect(jsonPath("$[5].type", is("BET")))
-                .andExpect(jsonPath("$[5].bet.fixture", is("FC E - FC F")))
-                .andExpect(jsonPath("$[5].bet.outcome", is("2")))
-                .andExpect(jsonPath("$[5].bet.stake", is(2.22)))
-                .andExpect(jsonPath("$[5].bet.odds", is(12.26)))
+    private void prepareData() {
+        Bet[] betList = new Bet[3];
 
-                .andExpect(jsonPath("$[6].type", is("BET")))
-                .andExpect(jsonPath("$[6].bet.fixture", is("FC G - FC H")))
-                .andExpect(jsonPath("$[6].bet.outcome", is("2")))
-                .andExpect(jsonPath("$[6].bet.stake", is(13.20)))
-                .andExpect(jsonPath("$[6].bet.odds", is(6.66)))
+        betList[0] = new Bet("BET", new Match("Liverpool FC - FC Porto",
+                "1", 20.00, 1.35));
 
-                .andExpect(jsonPath("$[7].type", is("BET")))
-                .andExpect(jsonPath("$[7].bet.fixture", is("FC I - FC J")))
-                .andExpect(jsonPath("$[7].bet.outcome", is("1")))
-                .andExpect(jsonPath("$[7].bet.stake", is(25.42)))
-                .andExpect(jsonPath("$[7].bet.odds", is(6.88)));
+        betList[1] = new Bet("BET", new Match("Tottenham - Manchester City",
+                "X", 15.10, 2.85));
+
+        betList[2] = new Bet("BET", new Match("Ajax - Juventus",
+                "2", 42.86, 3.21));
+
+        service.addAll(betList);
     }
 }
