@@ -198,6 +198,26 @@ public class BookmakingApplicationTests {
                 .andExpect(jsonPath("$", is("The bet contains an invalid value in the outcome field. The bet has not been added.")));
     }
 
+    @Test
+    public void shouldValidateStakeFieldValueLessThanZero() throws Exception {
+        prepareData();
+
+        Bet bet = new Bet("BET", new Match("FC Albin - FC Barcelona", "X", -5.00, 2.12));
+
+        mockMvc.perform(post("/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(bet)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/allBets"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[3].type", is("BET")))
+                .andExpect(jsonPath("$[3].bet.fixture", is("FC Albin - FC Barcelona")))
+                .andExpect(jsonPath("$[3].bet.outcome", is("X")))
+                .andExpect(jsonPath("$[3].bet.stake", is(0.00)));
+    }
 
     private void prepareData() {
         Bet[] betList = new Bet[3];
