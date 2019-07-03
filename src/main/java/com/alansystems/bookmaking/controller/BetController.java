@@ -1,5 +1,6 @@
 package com.alansystems.bookmaking.controller;
 
+import com.alansystems.bookmaking.exceptions.IncorrectValueException;
 import com.alansystems.bookmaking.model.Bet;
 import com.alansystems.bookmaking.service.BetService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,17 +33,32 @@ public class BetController {
 
     @PostMapping("add")
     public ResponseEntity<String> addOneBet(@RequestBody Bet bet) {
-        String response = service.addOne(bet);
-        logger.log(Level.INFO, "Response: {0}", "\n" + response);
+        if (bet.getBet().getOutcome().equals("1") || bet.getBet().getOutcome().equals("X")
+                || bet.getBet().getOutcome().equals("2")) {
 
-        return new ResponseEntity<>("Your bet is: \n" + response, HttpStatus.CREATED);
+            String response = service.addOne(bet);
+            logger.log(Level.INFO, "Response: {0}", "\n" + response);
+
+            return new ResponseEntity<>("Your bet is: \n" + response, HttpStatus.CREATED);
+        }
+
+        logger.log(Level.WARNING, "Response: {0}", "The bet has not been added");
+        return new ResponseEntity<>(new IncorrectValueException().getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("addAll")
     public ResponseEntity<String> addAllBets(@RequestBody Bet[] bets) {
+        for (Bet bet : bets) {
+            if (!bet.getBet().getOutcome().equals("1") && !bet.getBet().getOutcome().equals("X")
+                    && !bet.getBet().getOutcome().equals("2")) {
+                logger.log(Level.WARNING, "Response: {0}", "The bets has not been added");
+                return new ResponseEntity<>(new IncorrectValueException().getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        }
+
         String response = service.addAll(bets);
         logger.log(Level.INFO, "Response: {0}", "\n" + response);
 
-        return new ResponseEntity<>("Your bet is: \n" + response, HttpStatus.CREATED);
+        return new ResponseEntity<>("Your bets are: \n" + response, HttpStatus.CREATED);
     }
 }

@@ -38,7 +38,9 @@ public class BookmakingApplicationTests {
     public void shouldReturnAllBets() throws Exception {
         prepareData();
 
-        mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+        mockMvc.perform(get("/allBets"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].type", is("BET")))
                 .andExpect(jsonPath("$[0].bet.fixture", is("Liverpool FC - FC Porto")))
@@ -65,11 +67,14 @@ public class BookmakingApplicationTests {
 
         Bet bet = new Bet("BET", new Match("FC Albin - FC Barcelona", "X", 5.00, 2.12));
 
-        mockMvc.perform(post("/add").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/add")
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsBytes(bet)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+        mockMvc.perform(get("/allBets"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(4)))
                 .andExpect(jsonPath("$[3].type", is("BET")))
                 .andExpect(jsonPath("$[3].bet.fixture", is("FC Albin - FC Barcelona")))
@@ -81,7 +86,6 @@ public class BookmakingApplicationTests {
     @Test
     public void shouldAddAllBets() throws Exception {
         Bet[] bets = new Bet[5];
-
         bets[0] = new Bet("BET", new Match("FC A - FC B", "1", 7.00, 22.22));
         bets[1] = new Bet("BET", new Match("FC C - FC D", "X", 46.80, 3.12));
         bets[2] = new Bet("BET", new Match("FC E - FC F", "2", 2.22, 12.26));
@@ -92,7 +96,9 @@ public class BookmakingApplicationTests {
                 .content(mapper.writeValueAsBytes(bets)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+        mockMvc.perform(get("/allBets"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(5)))
                 .andExpect(jsonPath("$[0].type", is("BET")))
                 .andExpect(jsonPath("$[0].bet.fixture", is("FC A - FC B")))
@@ -128,18 +134,20 @@ public class BookmakingApplicationTests {
     @Test
     public void shouldSumStake() throws Exception {
         Bet[] bets = new Bet[5];
-
         bets[0] = new Bet("BET", new Match("FC A - FC B", "1", 7.00, 22.22));
         bets[1] = new Bet("BET", new Match("FC A - FC B", "X", 46.80, 3.12));
         bets[2] = new Bet("BET", new Match("FC A - FC B", "2", 2.22, 12.26));
         bets[3] = new Bet("BET", new Match("FC A - FC B", "2", 13.20, 6.66));
         bets[4] = new Bet("BET", new Match("FC B - FC C", "1", 25.42, 6.88));
 
-        mockMvc.perform(post("/addAll").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/addAll")
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsBytes(bets)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+        mockMvc.perform(get("/allBets"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$", hasSize(4)))
                 .andExpect(jsonPath("$[0].type", is("BET")))
                 .andExpect(jsonPath("$[0].bet.fixture", is("FC A - FC B")))
@@ -161,6 +169,35 @@ public class BookmakingApplicationTests {
                 .andExpect(jsonPath("$[3].bet.outcome", is("1")))
                 .andExpect(jsonPath("$[3].bet.stake", is(25.42)));
     }
+
+    @Test
+    public void shouldValidateOutcomeFieldValueInSingleAdd() throws Exception {
+        Bet bet = new Bet("BET", new Match("FC Albin - FC Barcelona", "XX", 5.00, 2.12));
+
+        mockMvc.perform(post("/add")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(bet)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$", is("The bet contains an invalid value in the outcome field. The bet has not been added.")));
+    }
+
+    @Test
+    public void shouldValidateOutcomeFieldValueInMultipleAdd() throws Exception {
+        Bet[] bets = new Bet[5];
+
+        bets[0] = new Bet("BET", new Match("FC A - FC B", "1", 7.00, 22.22));
+        bets[1] = new Bet("BET", new Match("FC A - FC B", "X", 46.80, 3.12));
+        bets[2] = new Bet("BET", new Match("FC A - FC B", "2", 2.22, 12.26));
+        bets[3] = new Bet("BET", new Match("FC A - FC B", "Z", 13.20, 6.66));
+        bets[4] = new Bet("BET", new Match("FC B - FC C", "1", 25.42, 6.88));
+
+        mockMvc.perform(post("/addAll")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(bets)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$", is("The bet contains an invalid value in the outcome field. The bet has not been added.")));
+    }
+
 
     private void prepareData() {
         Bet[] betList = new Bet[3];
