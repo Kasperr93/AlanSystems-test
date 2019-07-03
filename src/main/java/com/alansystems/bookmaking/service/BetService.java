@@ -23,6 +23,9 @@ public class BetService {
     public String addOne(Bet bet) {
         Bet existingBet = findExistingBet(bet);
 
+        if (bet.getBet().getStake() < 0.00)
+            bet.getBet().setStake(0.00);
+
         if (existingBet != null)
             sumWithExistingBet(bet, existingBet);
         else
@@ -37,6 +40,9 @@ public class BetService {
 
         for (int i = 0; i < bets.length; i++) {
             existingBet = findExistingBet(bets[i]);
+
+            if (bets[i].getBet().getStake() < 0.00)
+                bets[i].getBet().setStake(0.00);
 
             if (existingBet != null)
                 sumWithExistingBet(bets[i], existingBet);
