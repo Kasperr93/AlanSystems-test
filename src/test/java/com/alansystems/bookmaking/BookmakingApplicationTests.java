@@ -125,6 +125,43 @@ public class BookmakingApplicationTests {
                 .andExpect(jsonPath("$[4].bet.odds", is(6.88)));
     }
 
+    @Test
+    public void shouldSumStake() throws Exception {
+        Bet[] bets = new Bet[5];
+
+        bets[0] = new Bet("BET", new Match("FC A - FC B", "1", 7.00, 22.22));
+        bets[1] = new Bet("BET", new Match("FC A - FC B", "X", 46.80, 3.12));
+        bets[2] = new Bet("BET", new Match("FC A - FC B", "2", 2.22, 12.26));
+        bets[3] = new Bet("BET", new Match("FC A - FC B", "2", 13.20, 6.66));
+        bets[4] = new Bet("BET", new Match("FC B - FC C", "1", 25.42, 6.88));
+
+        mockMvc.perform(post("/addAll").contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsBytes(bets)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/allBets")).andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$", hasSize(4)))
+                .andExpect(jsonPath("$[0].type", is("BET")))
+                .andExpect(jsonPath("$[0].bet.fixture", is("FC A - FC B")))
+                .andExpect(jsonPath("$[0].bet.outcome", is("1")))
+                .andExpect(jsonPath("$[0].bet.stake", is(7.00)))
+
+                .andExpect(jsonPath("$[1].type", is("BET")))
+                .andExpect(jsonPath("$[1].bet.fixture", is("FC A - FC B")))
+                .andExpect(jsonPath("$[1].bet.outcome", is("X")))
+                .andExpect(jsonPath("$[1].bet.stake", is(46.80)))
+
+                .andExpect(jsonPath("$[2].type", is("BET")))
+                .andExpect(jsonPath("$[2].bet.fixture", is("FC A - FC B")))
+                .andExpect(jsonPath("$[2].bet.outcome", is("2")))
+                .andExpect(jsonPath("$[2].bet.stake", is(15.42)))
+
+                .andExpect(jsonPath("$[3].type", is("BET")))
+                .andExpect(jsonPath("$[3].bet.fixture", is("FC B - FC C")))
+                .andExpect(jsonPath("$[3].bet.outcome", is("1")))
+                .andExpect(jsonPath("$[3].bet.stake", is(25.42)));
+    }
+
     private void prepareData() {
         Bet[] betList = new Bet[3];
 
